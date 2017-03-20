@@ -11,7 +11,7 @@
 
 static int load_lib_user_info (const char *uname, int sec_level, struct usersec *out)
 {
-	FILE *file = fopen(CONFIG,"r+t");
+	FILE *file = fopen(PRIOR_CONFIG,"r+t");
 	
 	if (file != NULL)
 	{
