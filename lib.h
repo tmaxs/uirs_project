@@ -11,5 +11,5 @@ struct usersec
 	uint64_t sec_cat;
 	};
 
-extern struct usersec get_user_mac(const char *uname, int sec_level);
+extern void get_user_mac(const char *uname, int sec_level);
 
