@@ -1,9 +1,11 @@
 #include <stdint.h>
 #include <sys/types.h>
 
+#define SIZE_INCREMENT 100
+
 struct usersec
 	{
-	char uname[80];
+	char *uname;
 	uid_t uid;
 	int sec_level;
 	uint64_t sec_cat;

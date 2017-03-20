@@ -4,31 +4,36 @@
 #include <stdint.h>
 #include <sys/types.h>
 
+#define FILE_DB "file_db.db"
 
-
- extern struct usersec *get_user_info (char *uname, int sec_level, struct usersec *out)
-  {    
+extern void *get_user_info (char *uname, int sec_level, struct usersec *out)
+{    
    
-      FILE *f = fopen("liblocal.so" , "r+t");
+      FILE *file = fopen(FILE_DB, "r+t");
  
-	if (f != 0)
+	if (file != NULL)
 	{
 		while (!feof(f))
 		{
 			struct usersec temp;
-			char str[80];
-			fgets(str, 80, f);
-			stringParser(str, &temp);
+			char *str;
+			int min, max;
+			fgets(str, sizeof(str), f);
+			string_parser(str, &temp);
 
 			if (strcmp(temp.uname, uname) == 0 )
-				if (temp.sec_level == sec_level)
-			{
+			{	
+				string_subparser(temp.sec_level, &min, &max);				
+				if ( min <= sec_level && max >=sec_level )
+				{
 				strcpy(out->uname, temp.uname);
 				out->uid = temp.uid;
-				out->sec_level = temp.sec_level;
+				strcpy(out->sec_level, temp.sec_level);
 				strcpy(out->sec_cat, temp.sec_cat);
-
+				}
+			
 			}
 		}
+
 	}
-   }
+}

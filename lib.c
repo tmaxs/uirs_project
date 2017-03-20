@@ -6,105 +6,101 @@
 #include <dlfcn.h>
 #include <sys/types.h>
 
+#define PRIOR_CONFIG "prioritylib.conf"
+
 
 static int load_lib_user_info (const char *uname, int sec_level, struct usersec *out)
 {
-	FILE *file = fopen("prioritylib.conf","r+t");
+	FILE *file = fopen(CONFIG,"r+t");
 	
-	if (file != 0)
+	if (file != NULL)
 	{
-		char libn[80];
+		char *libn;
                 char *libname;
+		unsigned size = SIZE_INCREMENT;
+		libn = (char *) malloc(size*sizeof(char *));
+		
                 while (!feof(file))
                 {
                         libname = fgets(libn, sizeof(libn), file);
-
+			if(libname[0] == '#')
+				continue;
                         void *h = dlopen(libname, RTLD_LAZY);
-                        typedef struct usersec*(*get_func)(char*, int );
-                        get_func my_func = dlsym(h, "get_user_info");
-
-                        if (my_func == NULL)
-                        {
-                                if  (uname != 0)
-                                {
-                                        struct usersec*data = myfunc(uname, sec_level);
-                                        dlclose(h);
-                                        fclose(file);
+			if(h != NULL )
+			{	
+                        	typedef struct usersec*(*get_func)(const char*, int );
+                        	get_func my_func = dlsym(h, "get_user_info");
+				
+				if (my_func != NULL)
+                        	{
+                                	if  (uname != 0)
+                                	{
+                                        	myfunc(uname, sec_level, &out);
+						dlclose(h);
+                                	}
                                 }
-                                else
-                                {
-                                        dlclose(h);
-                                }
-				return 0;
-			}              
-			else 
-				return 1;
+                        }
 		}
-	}                    
-}
-static void stringParser(char *str, int sec_level, struct usersec *temp)
-{
-	int value = 0, j = 0;
-	char temp_str[80];
-        int i = 0;
-
-	while ( i < strlen(str))
-	{
-		if (str[i] == '|' || i == strlen(str)-1)
+		if(out != NULL)
 		{
-			temp_str[j] = '\0';
-			
-			switch (value)
-			{
-			case 0: strcpy(temp->uname, temp_str);
-				break;
-			case 1: temp->uid = atoi(temp_str);
-				break;
-			case 2: {
-				int k = 0, q = 0, min, max;
-				char temp_tstr[80];
-				while ( k < strlen(temp_str))
-				{
-					if (temp_str[k] == ';')
-					{
-						temp_tstr[q] = '\0';
-						min = atoi(temp_tstr);
-
-						strcpy(temp_tstr, "");
-					}
-                                    	if ( k == strlen(temp_str)-1)
-					{
-						temp_tstr[q] = '\0';
-						max = atoi(temp_tstr);
-
-						strcpy(temp_tstr, "");
-					}
-					
-					temp_tstr[q++] = temp_str[k];
-					k++;  
-				} 
-
-				if(min <= sec_level && max >= sec_level)
-					temp->sec_level = sec_level;
-				break;
-                                }
-			case 3: strcpy(temp->sec_cat, temp_str);
-				break;
-			}
-
-			strcpy(temp_str, "");
-			j = 0;
-			value++;
-
+			fclose(file);
+			return 0;
 		}
-		else
-			temp_str[j++] = str[i];
-                i++;  
- 
-	}
+	}      
+	fclose(file);
+	return 1;             
 }
+static void string_parser(char *str, struct usersec *temp)
+{
 
-extern struct usersec get_user_mac(const char *uname, int sec_level)
+        char *str1, *token;
+        char *saveptr;
+        int j;
+
+        for ( j = 0, str1 = str; ;j++, str1 = NULL)
+        {
+                token = strtok_r(str1, "|", &saveptr);
+                if (token == NULL)
+                        break;
+
+                switch(j)
+                {
+                case 0: strcpy(temp->uname, token);
+                        break;
+                case 1: temp->uid = atoi(token);
+                        break;
+                case 2: strcpy(temp->sec_level, token);
+                        break;
+                case 3: strcpy(temp->sec_cat, token);
+                        break;
+                }
+        }
+
+}
+static void string_subparser(char *str, int *min, int *max)
+{
+        char  *str1, *token;
+        char *saveptr;
+
+
+        for (int j = 0, str1 = str; ; j++, str1 = NULL)
+        {
+                token = strtok_r(str1, "[;]", &saveptr);
+                if (token == NULL)
+                      break;
+
+                switch(j)
+                {
+                case 0: min = atoi(token);
+                        break;
+                case 1: max = atoi(token);
+                        break;
+                }
+
+        }
+
+}
+extern void get_user_mac(const char *uname, int sec_level)
 {
         if (uname == NULL)
         {
@@ -123,5 +119,5 @@ extern struct usersec get_user_mac(const char *uname, int sec_level)
 		printf("Error!\n");
 		return;
 	}
-       return user;
 }
+
