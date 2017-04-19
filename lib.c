@@ -9,7 +9,7 @@
 #define PRIOR_CONFIG "prioritylib.conf"
 
 
-static int load_lib_user_info (const char *uname, int sec_level, struct usersec *out)
+static int load_lib_user_info (const char *uname, uid_t uid, struct usersec *out)
 {
 	FILE *file = fopen(PRIOR_CONFIG,"r+t");
 	
@@ -17,6 +17,7 @@ static int load_lib_user_info (const char *uname, int sec_level, struct usersec 
 	{
 		char *libn;
                 char *libname;
+		char *error;
 		unsigned size = SIZE_INCREMENT;
 		libn = (char *) malloc(size*sizeof(char *));
 		
@@ -26,20 +27,23 @@ static int load_lib_user_info (const char *uname, int sec_level, struct usersec 
 			if(libname[0] == '#')
 				continue;
                         void *h = dlopen(libname, RTLD_LAZY);
-			if(h != NULL )
-			{	
-                        	typedef struct usersec*(*get_func)(const char*, int );
-                        	get_func my_func = dlsym(h, "get_user_info");
+			if(!h)
+			{
+				fputs (dlerror(), stderr);
+				fprintf (stderr, "%s\n", error);
+				exit(1);
+			}
+                        typedef struct usersec*(*get_func)(const char*, uid_t );
+                        get_func my_func = dlsym(h, "get_user_info");
 				
-				if (my_func != NULL)
-                        	{
-                                	if  (uname != 0)
-                                	{
-                                        	myfunc(uname, sec_level, &out);
-						dlclose(h);
-                                	}
-                                }
-                        }
+			if (my_func != NULL)
+                        {
+                               	if  (uname != 0)
+                               	{
+                                       	myfunc(uname, uid, &out);
+					dlclose(h);
+                               	}
+			}
 		}
 		if(out != NULL)
 		{
@@ -67,7 +71,7 @@ static void string_parser(char *str, struct usersec *temp)
                 {
                 case 0: strcpy(temp->uname, token);
                         break;
-                case 1: temp->uid = atoi(token);
+                case 1: temp->uid = token;
                         break;
                 case 2: strcpy(temp->sec_level, token);
                         break;
@@ -79,13 +83,15 @@ static void string_parser(char *str, struct usersec *temp)
 }
 static void string_subparser(char *str, int *min, int *max)
 {
-        char  *str1, *token;
+        char *str2;
+	char *token;
         char *saveptr;
+	int j;
 
 
-        for (int j = 0, str1 = str; ; j++, str1 = NULL)
+        for ( j = 0, str2 = str; ; j++, str2 = NULL)
         {
-                token = strtok_r(str1, "[;]", &saveptr);
+                token = strtok_r(str2, "[;]", &saveptr);
                 if (token == NULL)
                       break;
 
@@ -100,21 +106,21 @@ static void string_subparser(char *str, int *min, int *max)
         }
 
 }
-extern void get_user_mac(const char *uname, int sec_level)
+extern void get_user_mac(uid_t uid, const char *uname)
 {
         if (uname == NULL)
         {
                 printf("Error! Wrong uname\n");
                 return;
         }
-        if (sec_level < 0 || sec_level > 3)
+        if (uid == NULL)
         {
                 printf("Error! Wrong value\n");
                 return;
         } 
 
         struct usersec user;
-	if (load_lib_user_info(uname, sec_level, &user) != 0)                          
+	if (load_lib_user_info(uname, uid, &user) != 0)                          
 	{
 		printf("Error!\n");
 		return;

@@ -5,9 +5,9 @@
 
 struct usersec
 	{
-	char *uname;
+	char *uname, *sec_level;
 	uid_t uid;
-	int sec_level;
+	int min, max;
 	uint64_t sec_cat;
 	};
 

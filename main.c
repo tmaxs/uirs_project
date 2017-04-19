@@ -1,21 +1,21 @@
 #include <stdio.h>
-#include "lib.h"
-
+#include <stdlib.h>
+#include <sys/types.h>
+//#include "lib.h"
+#include "lib.c"
 
 int main()
 {
 	char *uname;
-	int sec_level;
+	uid_t uid;
 	unsigned size = SIZE_INCREMENT;
 	
 	uname = (char *) malloc(size*sizeof(char *));
  
 	printf("Insert user name and security level: \n");
 	scanf("%s", uname);
-	scanf("%d", &sec_level);
-
-	struct usersec us;	
-	get_user_mac(uname, sec_level, &us);
+	scanf("%d", &uid);	
+	get_user_mac(uname, uid);
 
 	return 0;
 }
