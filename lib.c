@@ -16,52 +16,63 @@ static int load_lib_user_info (const char *uname, uid_t uid, struct usersec *out
 	if (file != NULL)
 	{
 		char *libn;
-                char *libname;
+               	char *libname;
 		char *error;
 		unsigned size = SIZE_INCREMENT;
-		libn = (char *) malloc(size*sizeof(char *));
 		
-                while (!feof(file))
-                {
-                        libname = fgets(libn, sizeof(libn), file);
-			if(libname[0] == '#')
-				continue;
-                        void *h = dlopen(libname, RTLD_LAZY);
+		libname = (char *) malloc(size * sizeof(char *));
+		
+            	while (fgets(libname,size,file)!= NULL)
+         	{
+                  		
+
+		if(libname[0] == '#')
+			continue;
+			printf("%s", libname);
+
+               	void *h = dlopen("liblocal.so", RTLD_LAZY);
+		if(h != NULL)
+		{printf("Open!");}
 			if(!h)
 			{
 				fputs (dlerror(), stderr);
 				fprintf (stderr, "%s\n", error);
 				exit(1);
 			}
-                        typedef struct usersec*(*get_func)(const char*, uid_t );
-                        get_func my_func = dlsym(h, "get_user_info");
+                        typedef struct usersec *(*get_func)(const char *, uid_t);
+                     	get_func *my_func = dlsym(h, "get_user_info");
 				
 			if (my_func != NULL)
                         {
-                               	if  (uname != 0)
+                               	if  (uname != NULL)
                                	{
-                                       	myfunc(uname, uid, &out);
+					//struct usersec temp;
+			//		printf("%s",temp.uname);
+                                  //	struct usersec out;
+					my_func(uname,uid);
 					dlclose(h);
                                	}
 			}
 		}
-		if(out != NULL)
-		{
-			fclose(file);
-			return 0;
-		}
+	//	if(out != NULL)
+	//	{
+	//		fclose(file);
+	//		return 0;*/
+	//	}
 	}      
 	fclose(file);
 	return 1;             
 }
-static void string_parser(char *str, struct usersec *temp)
+/*static void string_parser(char *str, struct usersec *temp)
 {
 
         char *str1, *token;
         char *saveptr;
         int j;
-
-        for ( j = 0, str1 = str; ;j++, str1 = NULL)
+	
+	token = (char *) malloc(sizeof(char *));
+        
+	for ( j = 0, str1 = str; ;j++, str1 = NULL)
         {
                 token = strtok_r(str1, "|", &saveptr);
                 if (token == NULL)
@@ -88,6 +99,7 @@ static void string_subparser(char *str, int *min, int *max)
         char *saveptr;
 	int j;
 
+	token = (char *) malloc(sizeof(char *));
 
         for ( j = 0, str2 = str; ; j++, str2 = NULL)
         {
@@ -105,9 +117,11 @@ static void string_subparser(char *str, int *min, int *max)
 
         }
 
-}
-extern void get_user_mac(uid_t uid, const char *uname)
+}*/
+extern void get_user_mac(const char *uname, uid_t uid)
 {
+	unsigned size = SIZE_INCREMENT;
+	uname = (char *) malloc(size * sizeof(char *));
         if (uname == NULL)
         {
                 printf("Error! Wrong uname\n");

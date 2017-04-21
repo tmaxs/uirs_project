@@ -1,8 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
-//#include "lib.h"
-#include "lib.c"
+#include "lib.h"
 
 int main()
 {
@@ -10,11 +9,13 @@ int main()
 	uid_t uid;
 	unsigned size = SIZE_INCREMENT;
 	
-	uname = (char *) malloc(size*sizeof(char *));
+	uname = (char *) malloc(size * sizeof(char *));
  
-	printf("Insert user name and security level: \n");
+	printf("Insert user name and user id: \n");
 	scanf("%s", uname);
-	scanf("%d", &uid);	
+	printf("User name: %s\n", uname);
+	scanf("%d", &uid);
+	printf("Uid: %d\n", uid );	
 	get_user_mac(uname, uid);
 
 	return 0;
