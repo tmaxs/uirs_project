@@ -7,17 +7,18 @@ int main()
 {
 	char *uname;
 	uid_t uid;
-	unsigned size = SIZE_INCREMENT;
-	
-	uname = (char *) malloc(size * sizeof(char *));
- 
-	printf("Insert user name and user id: \n");
-	scanf("%s", uname);
-	printf("User name: %s\n", uname);
-	scanf("%d", &uid);
-	printf("Uid: %d\n", uid );	
-	get_user_mac(uname, uid);
+        unsigned size = SIZE_INCREMENT;
 
-	return 0;
+        uname = (char *) malloc(size * sizeof(char *));
+
+        printf("Insert user name:\n");
+        scanf("%s", uname);
+        printf("User name: %s\n", uname);
+
+        struct usersec temp;
+
+      	temp = get_user_mac(uname);
+        printf("Uname:%s\n Uid:%d\n Min:%d, Max:%d\n Seccat:%s\n",temp.uname, temp.uid, temp.min, temp.max, temp.sec_cat);
+        return 0;
+
 }
-

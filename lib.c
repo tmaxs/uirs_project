@@ -8,136 +8,107 @@
 
 #define PRIOR_CONFIG "prioritylib.conf"
 
-
-static int load_lib_user_info (const char *uname, uid_t uid, struct usersec *out)
+static int load_lib_user_info (const char *uname, struct usersec *out)
 {
+	
 	FILE *file = fopen(PRIOR_CONFIG,"r+t");
 	
 	if (file != NULL)
 	{
+             	char *libname;
 		char *libn;
-               	char *libname;
 		char *error;
 		unsigned size = SIZE_INCREMENT;
-		
+	
 		libname = (char *) malloc(size * sizeof(char *));
 		
             	while (fgets(libname,size,file)!= NULL)
          	{
-                  		
 
-		if(libname[0] == '#')
-			continue;
+			if(libname[0] == '#')
+				continue;
 			printf("%s", libname);
-
-               	void *h = dlopen("liblocal.so", RTLD_LAZY);
-		if(h != NULL)
-		{printf("Open!");}
-			if(!h)
-			{
-				fputs (dlerror(), stderr);
-				fprintf (stderr, "%s\n", error);
-				exit(1);
-			}
-                        typedef struct usersec *(*get_func)(const char *, uid_t);
-                     	get_func *my_func = dlsym(h, "get_user_info");
 				
-			if (my_func != NULL)
-                        {
-                               	if  (uname != NULL)
-                               	{
-					//struct usersec temp;
-			//		printf("%s",temp.uname);
-                                  //	struct usersec out;
-					my_func(uname,uid);
-					dlclose(h);
-                               	}
+			libn = (char *) malloc(strlen(libname) * sizeof(char *));
+			int i=0;
+			while (i < strlen(libname))
+			{
+				if (libname[i]!='\n')
+					libn[i] = libname[i];
+				else 
+					libn[i] = '\0';
+			i++;
 			}
+			strcpy(libname, libn);		
+			printf("|%s|\n", libname);
+			printf ("%s\n", uname); 
+
+			void *h = dlopen(libname, RTLD_LAZY);
+
+				if(!h)
+				{
+					fputs (dlerror(), stderr);
+					fprintf (stderr, "%s\n", error);
+					exit(1);
+				}
+	
+			typedef void *(*get_func)(const char *, struct usersec *);
+			get_func lib_func = dlsym(h, "get_user_info");		
+			
+			if (lib_func != NULL)
+                        {
+                               
+					struct usersec temp;					
+					lib_func (uname, &temp);
+					
+					//printf("Uname:%s\n Uid:%d\n Min:%d, Max:%d\n Seccat:%s\n",temp.uname, temp.uid, temp.min, temp.max, temp.sec_cat);
+					
+					if( temp.uid == -1)
+					{
+							continue;
+					}
+					else
+					{
+					out->uname = malloc(size *sizeof(char*));	
+				strcpy(out->uname, temp.uname);
+				out->uid = temp.uid;
+				out->min = temp.min;
+				out->max = temp.max;
+				out->sec_cat = malloc(size *sizeof(char*));
+				strcpy(out->sec_cat, temp.sec_cat);
+					fclose(file);
+					return 0;
+					}
+
+					//printf("Uname:%s\n Uid:%d\n Min:%d, Max:%d\n Seccat:%s\n",temp.uname, temp.uid, temp.min, temp.max, temp.sec_cat);
+
+			}		
+					
+						
+			
+					
+		
+		
 		}
-	//	if(out != NULL)
-	//	{
-	//		fclose(file);
-	//		return 0;*/
-	//	}
 	}      
 	fclose(file);
 	return 1;             
-}
-/*static void string_parser(char *str, struct usersec *temp)
-{
+}   
 
-        char *str1, *token;
-        char *saveptr;
-        int j;
-	
-	token = (char *) malloc(sizeof(char *));
-        
-	for ( j = 0, str1 = str; ;j++, str1 = NULL)
-        {
-                token = strtok_r(str1, "|", &saveptr);
-                if (token == NULL)
-                        break;
-
-                switch(j)
-                {
-                case 0: strcpy(temp->uname, token);
-                        break;
-                case 1: temp->uid = token;
-                        break;
-                case 2: strcpy(temp->sec_level, token);
-                        break;
-                case 3: strcpy(temp->sec_cat, token);
-                        break;
-                }
+extern struct usersec get_user_mac(const char *uname)
+{	
+	if (uname == NULL)
+	{
+		printf("Error! Wrong uname\n");
+		return;
         }
 
-}
-static void string_subparser(char *str, int *min, int *max)
-{
-        char *str2;
-	char *token;
-        char *saveptr;
-	int j;
-
-	token = (char *) malloc(sizeof(char *));
-
-        for ( j = 0, str2 = str; ; j++, str2 = NULL)
-        {
-                token = strtok_r(str2, "[;]", &saveptr);
-                if (token == NULL)
-                      break;
-
-                switch(j)
-                {
-                case 0: min = atoi(token);
-                        break;
-                case 1: max = atoi(token);
-                        break;
-                }
-
-        }
-
-}*/
-extern void get_user_mac(const char *uname, uid_t uid)
-{
-	unsigned size = SIZE_INCREMENT;
-	uname = (char *) malloc(size * sizeof(char *));
-        if (uname == NULL)
-        {
-                printf("Error! Wrong uname\n");
-                return;
-        }
-        if (uid == NULL)
-        {
-                printf("Error! Wrong value\n");
-                return;
-        } 
-
-        struct usersec user;
-	if (load_lib_user_info(uname, uid, &user) != 0)                          
+	struct usersec temp;
+	if (load_lib_user_info(uname, &temp) != 0)                          
 	{
 		printf("Error!\n");
 		return;
 	}
+	return temp;
+	//printf("Uname:%s\n Uid:%d\n Min:%d, Max:%d\n Seccat:%s\n",temp.uname, temp.uid, temp.min, temp.max, temp.sec_cat);
 }
-

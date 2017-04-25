@@ -1,41 +1,46 @@
-#include "lib.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h> 
 #include <sys/types.h>
+#include "lib.h"
 
 #define FILE_DB "file_db.db"
 
 static void string_parser(char *str, struct usersec *temp)
-{
-
-        char *str1, *token;
+{	 
+        char *token, *str1;
         char *saveptr;
         int j;
-	unsigned size = SIZE_INCREMENT;
 
-     //   token = (char *) malloc(sizeof(char *));
-
+	token = (char *) malloc(SIZE_INCREMENT *sizeof(char *));
+	str1 = (char *) malloc(strlen(str) *sizeof(char *));
+	
         for ( j = 0, str1 = str; ;j++, str1 = NULL)
         {
-                token = strtok_r(str1, "|", &saveptr);
+              	token = strtok_r(str1, "|", &saveptr);
+				
                 if (token == NULL)
-                        break;
+                        break;	
 
                 switch(j)
                 {
-                case 0: strcpy(temp->uname, token);
+                case 0: 
+			temp->uname = malloc(strlen(token)*sizeof(char*));
+			strcpy(temp->uname, token);
                         break;
-                case 1: temp->uid = token;
+              	case 1: temp->uid = atoi(token);
                         break;
-                case 2: strcpy(temp->sec_level, token);
+            	case 2: 
+			temp->sec_level = malloc(strlen(token)*sizeof(char*));				strcpy(temp->sec_level, token);
                         break;
-                case 3: strcpy(temp->sec_cat, token);
+                case 3: 
+			temp->sec_cat = malloc(strlen(token)*sizeof(char*));
+			strcpy(temp->sec_cat, token);
                         break;
                 }
         }
-
+	
 }
 
 static void string_subparser(char *str, int *min, int *max)
@@ -45,8 +50,6 @@ static void string_subparser(char *str, int *min, int *max)
         char *saveptr;
         int j;
 
-       // token = (char *) malloc(sizeof(char *));
-
         for ( j = 0, str2 = str; ; j++, str2 = NULL)
         {
                 token = strtok_r(str2, "[;]", &saveptr);
@@ -55,48 +58,69 @@ static void string_subparser(char *str, int *min, int *max)
 
                 switch(j)
                 {
-                case 0: min = atoi(token);
+                case 0: *min = atoi(token);
                         break;
-                case 1: max = atoi(token);
-                        break;
-                }
+                case 1: *max = atoi(token);
+                        break;  
+		}
 
         }
 
 }
 
 
-extern void *get_user_info (char *uname, uid_t uid, struct usersec *out)
+extern void *get_user_info (const char *uname, struct usersec *out)
 {    
+	
    
       FILE *file = fopen(FILE_DB, "r+t");
- 
+ 	
 	if (file != NULL)
 	{
-		while (!feof(file))
-		{
-			struct usersec temp;
-			char *str;
-			int min, max;
-			fgets(str, sizeof(str), file);
-			string_parser(str, &temp);
+		unsigned size = SIZE_INCREMENT;	
+		char *str; 
 
-			str = (char *) malloc(sizeof(char *));
+		str = (char *) malloc(size *sizeof(char *));
+
+		while (fgets(str, size, file) != NULL)
+		{
+			
+			int min, max;
+			char *str1;
+			str1 = (char *) malloc(strlen(str) * sizeof(char *));
+                     	int i=0;
+                        while (i < strlen(str))
+                        {
+                                if (str[i]!='\n')
+                                        str1[i] = str[i];
+                                else
+                                        str1[i] = '\0';
+                        i++;
+                        }
+                     	strcpy(str, str1);
+			
+			struct usersec temp;
+			string_parser(str, &temp);
+			string_subparser(temp.sec_level, &min, &max);
 
 			if (strcmp(temp.uname, uname) == 0 )
 			{	
-				string_subparser(temp.sec_level, &min, &max);	
-
-				{
+	  			out->uname = malloc(size *sizeof(char*));	
 				strcpy(out->uname, temp.uname);
 				out->uid = temp.uid;
-				out->min = temp.min;
-				out->max = temp.max;
+				out->min = min;
+				out->max = max;
+				out->sec_cat = malloc(size *sizeof(char*));
 				strcpy(out->sec_cat, temp.sec_cat);
-				}
 			
+				fclose(file);
+				return;
 			}
 		}
 
 	}
+	fclose(file);
+	//out = NULL;
+	out->uid = -1;
 }
+
