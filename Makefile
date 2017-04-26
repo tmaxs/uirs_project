@@ -7,11 +7,11 @@ MODULES = liblocal.so
 # Служебный целевой модуль
 .PHONY:		all clean
 # Стандартный целевой модуль: компиляция всех файлов.
-all:	$(MODULES) main lib
+all:	$(MODULES) main 
 	
 # Удаление всего чего насобирали.
 clean:
-	rm -f	$(MODULES) main lib
+	rm -f	$(MODULES) main 
 
 # Собираем основные файлы.
 main:		$(SOURCES) 
@@ -20,7 +20,6 @@ main:		$(SOURCES)
 lib:		$(SOURCES)
 	$(CC)	$(CFLAGS)	-Wl,-export-dynamic -o $@ $^ -ldl					
 # Собираем библиотеки.
-$(MODULES): 
-		%.so:		%.c
-	$(CC)	$(CFLAGS)	-fPIC -shared -o $@ %body%lt
+$(MODULES): %.so:		%.c
+	$(CC)	$(CFLAGS)	-fPIC -shared -o $@ liblocal.c
 #

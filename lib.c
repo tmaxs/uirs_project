@@ -18,18 +18,17 @@ static int load_lib_user_info (const char *uname, struct usersec *out)
              	char *libname;
 		char *libn;
 		char *error;
-		unsigned size = SIZE_INCREMENT;
 	
-		libname = (char *) malloc(size * sizeof(char *));
+		libname = malloc(SIZE_INCREMENT * sizeof(char *));
 		
-            	while (fgets(libname,size,file)!= NULL)
+            	while (fgets(libname,SIZE_INCREMENT,file)!= NULL)
          	{
 
 			if(libname[0] == '#')
 				continue;
 			printf("%s", libname);
 				
-			libn = (char *) malloc(strlen(libname) * sizeof(char *));
+			libn = malloc(strlen(libname) * sizeof(char *));
 			int i=0;
 			while (i < strlen(libname))
 			{
@@ -69,13 +68,13 @@ static int load_lib_user_info (const char *uname, struct usersec *out)
 					}
 					else
 					{
-					out->uname = malloc(size *sizeof(char*));	
-				strcpy(out->uname, temp.uname);
-				out->uid = temp.uid;
-				out->min = temp.min;
-				out->max = temp.max;
-				out->sec_cat = malloc(size *sizeof(char*));
-				strcpy(out->sec_cat, temp.sec_cat);
+					out->uname = malloc(SIZE_INCREMENT *sizeof(char*));	
+					strcpy(out->uname, temp.uname);
+					out->uid = temp.uid;
+					out->min = temp.min;
+					out->max = temp.max;
+					out->sec_cat = malloc(SIZE_INCREMENT *sizeof(char*));
+					strcpy(out->sec_cat, temp.sec_cat);
 					fclose(file);
 					return 0;
 					}

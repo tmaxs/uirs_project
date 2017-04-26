@@ -7,9 +7,8 @@ int main()
 {
 	char *uname;
 	uid_t uid;
-        unsigned size = SIZE_INCREMENT;
-
-        uname = (char *) malloc(size * sizeof(char *));
+      
+        uname = malloc(SIZE_INCREMENT * sizeof(char *));
 
         printf("Insert user name:\n");
         scanf("%s", uname);
