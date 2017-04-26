@@ -17,7 +17,6 @@ static int load_lib_user_info (const char *uname, struct usersec *out)
 	{
              	char *libname;
 		char *libn;
-		char *error;
 	
 		libname = malloc(SIZE_INCREMENT * sizeof(char *));
 		
@@ -44,12 +43,12 @@ static int load_lib_user_info (const char *uname, struct usersec *out)
 
 			void *h = dlopen(libname, RTLD_LAZY);
 
-				if(!h)
+				if (!h)
 				{
-					fputs (dlerror(), stderr);
-					fprintf (stderr, "%s\n", error);
-					exit(1);
+					fprintf(stderr, "%s\n", dlerror());
+					exit(EXIT_FAILURE);
 				}
+				dlerror();
 	
 			typedef void *(*get_func)(const char *, struct usersec *);
 			get_func lib_func = dlsym(h, "get_user_info");		
