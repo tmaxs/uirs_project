@@ -13,6 +13,7 @@ struct usersec
 	char *sec_cat;
 	};
 
-extern struct usersec get_user_mac(const char *);
+extern void *get_uname(struct usersec *, const char *);
+extern void *get_uid(struct usersec *, uid_t uid);
 //extern void *get_user_info(char *uname, struct usersec *out);
 

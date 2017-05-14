@@ -16,10 +16,8 @@ clean:
 # Собираем основные файлы.
 main:		$(SOURCES) 
 	$(CC)	$(CFLAGS)	-Wl,-export-dynamic -o $@ $^ -ldl
-
-lib:		$(SOURCES)
-	$(CC)	$(CFLAGS)	-Wl,-export-dynamic -o $@ $^ -ldl					
+					
 # Собираем библиотеки.
 $(MODULES): %.so:		%.c
 	$(CC)	$(CFLAGS)	-fPIC -shared -o $@ liblocal.c
-#
+####################################################

@@ -13,7 +13,7 @@ static void string_parser(char *str, struct usersec *temp)
         char *saveptr;
         int j;
 
-	str1 =  malloc(strlen(str) *sizeof(char *));
+	str1 =  malloc(sizeof(char));
 	
         for ( j = 0, str1 = str; ;j++, str1 = NULL)
         {
@@ -25,16 +25,16 @@ static void string_parser(char *str, struct usersec *temp)
                 switch(j)
                 {
                 case 0: 
-			temp->uname = malloc(strlen(token)*sizeof(char*));
+			temp->uname = malloc(sizeof(char));
 			strcpy(temp->uname, token);
                         break;
               	case 1: temp->uid = atoi(token);
                         break;
             	case 2: 
-			temp->sec_level = malloc(strlen(token)*sizeof(char*));				strcpy(temp->sec_level, token);
+			temp->sec_level = malloc(sizeof(char));				strcpy(temp->sec_level, token);
                         break;
                 case 3: 
-			temp->sec_cat = malloc(strlen(token)*sizeof(char*));
+			temp->sec_cat = malloc(sizeof(char));
 			strcpy(temp->sec_cat, token);
                         break;
                 }
@@ -68,7 +68,7 @@ static void string_subparser(char *str, int *min, int *max)
 }
 
 
-extern void *get_user_info (const char *uname, struct usersec *out)
+extern void *get_user_info (const char *uname, uid_t uid, struct usersec *out)
 {    
 	
    
@@ -78,7 +78,7 @@ extern void *get_user_info (const char *uname, struct usersec *out)
 	{
 		char *str; 
 
-		str = malloc(SIZE_INCREMENT *sizeof(char *));
+		str = malloc(sizeof(char));
 
 		while (fgets(str, SIZE_INCREMENT, file) != NULL)
 		{
@@ -86,7 +86,7 @@ extern void *get_user_info (const char *uname, struct usersec *out)
 			int min, max;
 			char *str1;
 			str1 = malloc(strlen(str) * sizeof(char *));
-                     	int i=0;
+                     	size_t i=0;
                         while (i < strlen(str))
                         {
                                 if (str[i]!='\n')
@@ -101,24 +101,26 @@ extern void *get_user_info (const char *uname, struct usersec *out)
 			string_parser(str, &temp);
 			string_subparser(temp.sec_level, &min, &max);
 
-			if (strcmp(temp.uname, uname) == 0 )
+			if (strcmp(temp.uname, uname) == 0 || temp.uid == uid )
 			{	
-	  			out->uname = malloc(SIZE_INCREMENT *sizeof(char*));	
+	  			out->uname = malloc(sizeof(char));	
 				strcpy(out->uname, temp.uname);
 				out->uid = temp.uid;
 				out->min = min;
 				out->max = max;
-				out->sec_cat = malloc(SIZE_INCREMENT *sizeof(char*));
+				out->sec_cat = malloc(sizeof(char));
 				strcpy(out->sec_cat, temp.sec_cat);
 			
 				fclose(file);
-				return;
-			}
+				return out;
+			} 
 		}
-
+		free(str);
 	}
+	
 	fclose(file);
 	//out = NULL;
-	out->uid = -1;
+	out->uname = NULL ;
+	return NULL;
 }
 

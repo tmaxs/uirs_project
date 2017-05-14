@@ -1,23 +1,44 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
 #include "lib.h"
 
 int main()
 {
 	char *uname;
+	char *opt;
 	uid_t uid;
       
-        uname = malloc(SIZE_INCREMENT * sizeof(char *));
+        uname = malloc( sizeof(char));
+	opt = malloc( sizeof(char));
 
-        printf("Insert user name:\n");
-        scanf("%s", uname);
-        printf("User name: %s\n", uname);
-
-        struct usersec temp;
-
-      	temp = get_user_mac(uname);
-        printf("Uname:%s\n Uid:%d\n Min:%d, Max:%d\n Seccat:%s\n",temp.uname, temp.uid, temp.min, temp.max, temp.sec_cat);
-        return 0;
-
+        printf("If search by username, enter the word 'uname'. If serch by userID, enter the word 'uid'.\n");
+        scanf("%s", opt);
+	char *opt1 = "uname";
+	char *opt2 = "uid";
+	if (strcmp(opt, opt1) == 0 )
+	{
+        	printf("Enter username:\n");
+		scanf("%s", uname);
+        	struct usersec temp;
+		get_uname(&temp, uname);
+  //    	temp = get_user_mac(uname);
+        	printf("Uname:%s\n Uid:%d\n Min:%d, Max:%d\n Seccat:%s\n",temp.uname, temp.uid, temp.min, temp.max, temp.sec_cat);
+        	return 0;
+	}
+	if (strcmp(opt, opt2) == 0)
+        {
+		printf("Enter userID:\n");		
+		scanf("%d", &uid);
+		printf("Uid:%d\n", uid);
+		struct usersec temp;
+		get_uid (&temp, uid);
+  //            temp = get_user_mac(uname);
+		printf("Uname:%s\n Uid:%d\n Min:%d, Max:%d\n Seccat:%s\n",temp.uname, temp.uid, temp.min, temp.max, temp.sec_cat);
+		return 0;
+	} 
+	printf("Error!\n");
+	return 0;                      
+	
 }
