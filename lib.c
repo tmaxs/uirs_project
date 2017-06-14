@@ -18,17 +18,15 @@ static int load_lib_user_info (const char *uname, uid_t uid, struct usersec *out
              	char *libname;
 		char *libn;
 	
-		libname = malloc(sizeof(char));
-	//	  printf ("%s\n", uname);
+		libname = malloc(SIZE_INCREMENT*sizeof(char));
 
             	while (fgets(libname,SIZE_INCREMENT,file)!= NULL)
          	{
 
 			if(libname[0] == '#')
 				continue;
-		//	printf("%s", libname);
-				
-			libn = malloc(sizeof(char));
+		
+			libn = malloc(SIZE_INCREMENT*sizeof(char));
 			size_t i=0;
 			while (i < strlen(libname))
 			{
@@ -36,66 +34,59 @@ static int load_lib_user_info (const char *uname, uid_t uid, struct usersec *out
 					libn[i] = libname[i];
 				else 
 					libn[i] = '\0';
-			i++;
+				i++;
 			}
 			strcpy(libname, libn);	
 
-		//	printf ("%s\n", uname); 
-		//	printf("%d\n", uid);
-			void *h = dlopen(libname, RTLD_LAZY);
+		void *h = dlopen(libname, RTLD_LAZY);
 
-				if (!h)
-				{
-					fprintf(stderr, "%s\n", dlerror());
-					exit(EXIT_FAILURE);
-				}
-				dlerror();
-				printf("Opened library |%s|.\n", libname);
+			if (!h)
+			{
+				fprintf(stderr, "%s\n", dlerror());
+				exit(EXIT_FAILURE);
+			}
+			dlerror();
+
+			printf("Opened library |%s|.\n", libname);
 	
-			typedef void *(*get_func)(const char *, uid_t , struct usersec *);
-			get_func lib_func = dlsym(h, "get_user_info");		
+		typedef void (*get_func)(const char *, uid_t , struct usersec *);
+		get_func lib_func = dlsym(h, "get_user_info");		
+			
 			printf("Function loaded.\n");
+	
 			if (lib_func != NULL)
                         {
                                
-					struct usersec temp;					
-					(*lib_func) (uname, uid, &temp);
+				struct usersec temp;					
+				lib_func (uname, uid, &temp);
 					
-					//printf("Uname:%s\n Uid:%d\n Min:%d, Max:%d\n Seccat:%s\n",temp.uname, temp.uid, temp.min, temp.max, temp.sec_cat);
-
-					if( temp.uname== NULL)
-					{
-						printf("In the given library of the information on the user it is not found.\n");
-						continue;
-					}
-					else
-					{
-					out->uname = malloc(sizeof(char));	
-					strcpy(out->uname, temp.uname);
+				if( temp.uname == NULL ) 
+				{
+					printf("In the given library of the information on the user it is not found.\n");
+					continue;
+				}
+				else
+				{
+					out->uname = strdup(temp.uname);
 					out->uid = temp.uid;
 					out->min = temp.min;
 					out->max = temp.max;
-					out->sec_cat = malloc(sizeof(char));
-					strcpy(out->sec_cat, temp.sec_cat);
+					out->sec_cat = temp.sec_cat;
+						
 					fclose(file);
 					return 0;
-					}
+				}
 
-					//printf("Uname:%s\n Uid:%d\n Min:%d, Max:%d\n Seccat:%s\n",temp.uname, temp.uid, temp.min, temp.max, temp.sec_cat);
-
-			}		
+			}
+			free(libn);		
 					
-						
-			
-					
-		
-		
 		}
+		free(libname);
 	}      
 	fclose(file);
 	return 1;             
 }   
-extern void *get_uname(struct usersec *out, const char *uname)
+extern int get_mac_uname(struct usersec *out, const char *uname)
 {	
 	if (uname == NULL)
 	{
@@ -105,43 +96,31 @@ extern void *get_uname(struct usersec *out, const char *uname)
         }
 	uid_t uid;
 	struct usersec temp;
-	if (load_lib_user_info(uname,uid, &temp) != 0)                          
+	if (load_lib_user_info(uname, uid, &temp) != 0)                          
 	{
 		printf("Error!\n");
 		exit (EXIT_SUCCESS);	
 	
 	}
-	
-	/*char *name = malloc(sizeof(char));
-	name = &temp.uname;
-	uid_t uid = &temp.uid;
-	int min = &temp.min;
-	int max = &temp.max;
-	char *sec_cat = malloc(sizeof(char));
-	sec_cat = &temp.sec_cat;*/
-	
-	out->uname = malloc(sizeof(char));
-	strcpy(out->uname, temp.uname);
+	out->uname = strdup(temp.uname);
 	out->uid = temp.uid;
 	out->min = temp.min;
 	out->max = temp.max;
-	out->sec_cat = malloc(sizeof(char));
-	strcpy(out->sec_cat, temp.sec_cat);
-	/*printf("Uname:%s\n Uid:%d\n Min:%d, Max:%d\n Seccat:%s\n",*name, *uid, *min, *max, *sec_cat);*/
-	return out;
+	out->sec_cat = temp.sec_cat;
 
-	//getch(out);
+	free(out->uname);
+	return 0;
 }
-extern void *get_uid(struct usersec *out, uid_t uid)
+extern int get_mac_uid(struct usersec *out, uid_t uid)
 {
-//	printf("%d\n", uid);
-	if( uid == 0)
+	if(!uid)
 	{
 		printf("Error! Wrong uid\n");
 		exit (EXIT_SUCCESS);
 	
 	}
 	char *uname;
+	uname = malloc(SIZE_INCREMENT*(sizeof(char)));
 	struct usersec temp;
         if (load_lib_user_info(uname, uid, &temp) != 0)
         {
@@ -149,12 +128,14 @@ extern void *get_uid(struct usersec *out, uid_t uid)
                 exit (EXIT_SUCCESS);
 
         }
-	out->uname = malloc(sizeof(char));
-        strcpy(out->uname, temp.uname);
+	free(uname);
+	
+        out->uname = strdup(temp.uname);
         out->uid = temp.uid;
         out->min = temp.min;
         out->max = temp.max;
-        out->sec_cat = malloc(sizeof(char));
-        strcpy(out->sec_cat, temp.sec_cat);
-	return out;
+        out->sec_cat = temp.sec_cat;
+
+	free(out->uname);
+	return 0;
 }

@@ -13,8 +13,6 @@ static void string_parser(char *str, struct usersec *temp)
         char *saveptr;
         int j;
 
-	str1 =  malloc(sizeof(char));
-	
         for ( j = 0, str1 = str; ;j++, str1 = NULL)
         {
               	token = strtok_r(str1, "|", &saveptr);
@@ -25,19 +23,18 @@ static void string_parser(char *str, struct usersec *temp)
                 switch(j)
                 {
                 case 0: 
-			temp->uname = malloc(sizeof(char));
-			strcpy(temp->uname, token);
-                        break;
+			temp->uname = strdup(token);
+			break;
               	case 1: temp->uid = atoi(token);
                         break;
-            	case 2: 
-			temp->sec_level = malloc(sizeof(char));				strcpy(temp->sec_level, token);
+            	case 2:
+			temp->sec_level = strdup(token);
                         break;
                 case 3: 
-			temp->sec_cat = malloc(sizeof(char));
-			strcpy(temp->sec_cat, token);
+			temp->sec_cat = atoi(token);
                         break;
                 }
+	
         }
 	
 }
@@ -68,7 +65,7 @@ static void string_subparser(char *str, int *min, int *max)
 }
 
 
-extern void *get_user_info (const char *uname, uid_t uid, struct usersec *out)
+extern void get_user_info (const char *uname, uid_t uid, struct usersec *out)
 {    
 	
    
@@ -78,7 +75,7 @@ extern void *get_user_info (const char *uname, uid_t uid, struct usersec *out)
 	{
 		char *str; 
 
-		str = malloc(sizeof(char));
+		str = malloc(SIZE_INCREMENT *sizeof(char));
 
 		while (fgets(str, SIZE_INCREMENT, file) != NULL)
 		{
@@ -103,24 +100,23 @@ extern void *get_user_info (const char *uname, uid_t uid, struct usersec *out)
 
 			if (strcmp(temp.uname, uname) == 0 || temp.uid == uid )
 			{	
-	  			out->uname = malloc(sizeof(char));	
-				strcpy(out->uname, temp.uname);
+	  			out->uname = strdup(temp.uname);
 				out->uid = temp.uid;
 				out->min = min;
 				out->max = max;
-				out->sec_cat = malloc(sizeof(char));
-				strcpy(out->sec_cat, temp.sec_cat);
-			
+				out->sec_cat = temp.sec_cat;
+				
+				free(temp.uname);
 				fclose(file);
-				return out;
-			} 
+				return;
+			}
+			free(str1); 
 		}
 		free(str);
 	}
 	
 	fclose(file);
-	//out = NULL;
 	out->uname = NULL ;
-	return NULL;
+	return;
 }
 

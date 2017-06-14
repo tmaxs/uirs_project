@@ -10,10 +10,9 @@ struct usersec
 	char *sec_level;
 	uid_t uid;
 	int min, max;
-	char *sec_cat;
+	uint64_t sec_cat;
 	};
 
-extern void *get_uname(struct usersec *, const char *);
-extern void *get_uid(struct usersec *, uid_t uid);
-//extern void *get_user_info(char *uname, struct usersec *out);
+extern int get_mac_uname(struct usersec *, const char *);
+extern int get_mac_uid(struct usersec *, uid_t uid);
 

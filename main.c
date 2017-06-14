@@ -3,6 +3,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include "lib.h"
+#include <inttypes.h>
 
 int main()
 {
@@ -22,22 +23,24 @@ int main()
         	printf("Enter username:\n");
 		scanf("%s", uname);
         	struct usersec temp;
-		get_uname(&temp, uname);
+		get_mac_uname(&temp, uname);
   //    	temp = get_user_mac(uname);
-        	printf("Uname:%s\n Uid:%d\n Min:%d, Max:%d\n Seccat:%s\n",temp.uname, temp.uid, temp.min, temp.max, temp.sec_cat);
+        	printf("Uname:%s\n Uid:%d\n Min:%d, Max:%d\n Seccat:% "PRIu64" \n",temp.uname, temp.uid, temp.min, temp.max, temp.sec_cat);
         	return 0;
 	}
+	free(uname);
 	if (strcmp(opt, opt2) == 0)
         {
 		printf("Enter userID:\n");		
 		scanf("%d", &uid);
 		printf("Uid:%d\n", uid);
 		struct usersec temp;
-		get_uid (&temp, uid);
+		get_mac_uid (&temp, uid);
   //            temp = get_user_mac(uname);
-		printf("Uname:%s\n Uid:%d\n Min:%d, Max:%d\n Seccat:%s\n",temp.uname, temp.uid, temp.min, temp.max, temp.sec_cat);
+		printf("Uname:%s\n Uid:%d\n Min:%d, Max:%d\n Seccat:% "PRIu64" \n",temp.uname, temp.uid, temp.min, temp.max, temp.sec_cat);
 		return 0;
 	} 
+	free(opt);
 	printf("Error!\n");
 	return 0;                      
 	
